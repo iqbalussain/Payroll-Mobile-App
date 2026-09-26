@@ -17,13 +17,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import com.example.payrollsheet.data.local.PayrollEntry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 enum class ScreenTab {
     HOME,
+    SUMMARY,
     EMPLOYEES,
+    ADD_EMPLOYEE,
     PAYROLL,
     ADVANCES,
     COSTS,
@@ -51,6 +54,16 @@ class PayrollViewModel(private val repository: PayrollRepository) : ViewModel() 
     val advances: StateFlow<List<AdvanceTx>> = repository.advances
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val payrollEntries: StateFlow<List<PayrollEntry>> = repository.payrollEntries
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Authentication State
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    private val _currentUserEmail = MutableStateFlow("")
+    val currentUserEmail: StateFlow<String> = _currentUserEmail.asStateFlow()
+
     private val _currentTab = MutableStateFlow(ScreenTab.HOME)
     val currentTab: StateFlow<ScreenTab> = _currentTab.asStateFlow()
 
@@ -62,6 +75,24 @@ class PayrollViewModel(private val repository: PayrollRepository) : ViewModel() 
 
     private val _toastEvent = MutableSharedFlow<Pair<String, Boolean>>() // message, isError
     val toastEvent: SharedFlow<Pair<String, Boolean>> = _toastEvent.asSharedFlow()
+
+    fun login(email: String, role: String = "admin") {
+        _isLoggedIn.value = true
+        _currentUserEmail.value = email.trim()
+        _userRole.value = role
+        viewModelScope.launch {
+            _toastEvent.emit("Welcome, $email (${role.uppercase()})" to false)
+        }
+    }
+
+    fun logout() {
+        _isLoggedIn.value = false
+        _currentUserEmail.value = ""
+        _currentTab.value = ScreenTab.HOME
+        viewModelScope.launch {
+            _toastEvent.emit("Signed out successfully" to false)
+        }
+    }
 
     init {
         // Initialize batch when batches load or month defaults

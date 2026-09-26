@@ -121,6 +121,10 @@ object PayrollCalculations {
         return decimalFormat.format(value)
     }
 
+    fun formatCurrency(value: Double): String {
+        return "$" + decimalFormat.format(value)
+    }
+
     fun monthLabel(m: String): String {
         if (m.isBlank()) return ""
         return try {

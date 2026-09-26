@@ -25,7 +25,9 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -142,6 +144,30 @@ fun HomeScreen(
             fontWeight = FontWeight.Bold,
             color = Navy900
         )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ModuleTile(
+                title = "Monthly Summary",
+                subtitle = "Filtered salary disbursements",
+                icon = Icons.Default.Summarize,
+                color = Teal600,
+                bg = TealLight,
+                onClick = { onNavigate(ScreenTab.SUMMARY) },
+                modifier = Modifier.weight(1f)
+            )
+            ModuleTile(
+                title = "Add Employee",
+                subtitle = "Register worker with salary",
+                icon = Icons.Default.PersonAdd,
+                color = Emerald600,
+                bg = EmeraldLight,
+                onClick = { onNavigate(ScreenTab.ADD_EMPLOYEE) },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),

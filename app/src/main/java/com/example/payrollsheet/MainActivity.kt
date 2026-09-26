@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,13 +24,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -37,6 +41,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -69,18 +74,26 @@ import com.example.payrollsheet.data.model.Employee
 import com.example.payrollsheet.ui.components.AdvanceDialog
 import com.example.payrollsheet.ui.components.EmployeeDialog
 import com.example.payrollsheet.ui.components.EmployeeDialogMode
+import com.example.payrollsheet.ui.screens.AddEmployeeScreen
 import com.example.payrollsheet.ui.screens.AdvancesScreen
 import com.example.payrollsheet.ui.screens.CostAllocationScreen
 import com.example.payrollsheet.ui.screens.EmployeesScreen
 import com.example.payrollsheet.ui.screens.HistoryScreen
 import com.example.payrollsheet.ui.screens.HomeScreen
+import com.example.payrollsheet.ui.screens.LoginScreen
 import com.example.payrollsheet.ui.screens.PayrollScreen
+import com.example.payrollsheet.ui.screens.PayrollSummaryScreen
 import com.example.payrollsheet.ui.screens.SalarySlipsScreen
 import com.example.payrollsheet.ui.theme.Emerald600
 import com.example.payrollsheet.ui.theme.Navy800
 import com.example.payrollsheet.ui.theme.Navy900
 import com.example.payrollsheet.ui.theme.PayrollSheetTheme
+import com.example.payrollsheet.ui.theme.Slate100
+import com.example.payrollsheet.ui.theme.Slate200
 import com.example.payrollsheet.ui.theme.Slate500
+import com.example.payrollsheet.ui.theme.Slate600
+import com.example.payrollsheet.ui.theme.Slate800
+import com.example.payrollsheet.ui.theme.Slate900
 import com.example.payrollsheet.ui.theme.Teal600
 import com.example.payrollsheet.ui.theme.TealLight
 import com.example.payrollsheet.ui.viewmodel.PayrollViewModel
@@ -107,11 +120,13 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PayrollMainApp(viewModel: PayrollViewModel) {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
     val userRole by viewModel.userRole.collectAsStateWithLifecycle()
     val employees by viewModel.employees.collectAsStateWithLifecycle()
     val batches by viewModel.batches.collectAsStateWithLifecycle()
     val advances by viewModel.advances.collectAsStateWithLifecycle()
+    val payrollEntries by viewModel.payrollEntries.collectAsStateWithLifecycle()
     val currentBatch by viewModel.currentBatch.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -132,6 +147,16 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
         }
     }
 
+    // If not authenticated, render LoginScreen
+    if (!isLoggedIn) {
+        LoginScreen(
+            onLogin = { email, role ->
+                viewModel.login(email, role)
+            }
+        )
+        return
+    }
+
     // Android Hardware Back button handling
     BackHandler(enabled = currentTab != ScreenTab.HOME) {
         viewModel.setTab(ScreenTab.HOME)
@@ -142,8 +167,8 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Navy900,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = Slate900
                 ),
                 title = {
                     Row(
@@ -169,12 +194,14 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
                                 text = "Site Payroll Manager",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = Slate900
                             )
                             Text(
                                 text = when (currentTab) {
                                     ScreenTab.HOME -> "Operations Dashboard"
+                                    ScreenTab.SUMMARY -> "Monthly Salary Disbursements"
                                     ScreenTab.EMPLOYEES -> "Worker Directory"
+                                    ScreenTab.ADD_EMPLOYEE -> "Register New Worker"
                                     ScreenTab.PAYROLL -> "Monthly Payroll"
                                     ScreenTab.ADVANCES -> "Advance Management"
                                     ScreenTab.COSTS -> "Cost Center Allocation"
@@ -182,18 +209,31 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
                                     ScreenTab.SLIPS -> "Salary Pay Slips"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                                color = Slate600
                             )
                         }
                     }
                 },
                 actions = {
-                    // Role switcher pill badge
+                    // Quick Add Employee Action
+                    IconButton(
+                        onClick = { viewModel.setTab(ScreenTab.ADD_EMPLOYEE) },
+                        modifier = Modifier.testTag("topbar_add_employee_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PersonAdd,
+                            contentDescription = "Add Employee",
+                            tint = Teal600
+                        )
+                    }
+
+                    // Role switcher pill badge in light style
                     Box(
                         modifier = Modifier
-                            .padding(end = 12.dp)
+                            .padding(end = 4.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Navy800)
+                            .background(Slate100)
+                            .border(1.dp, Slate200, RoundedCornerShape(12.dp))
                             .clickable { viewModel.toggleRole() }
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                             .testTag("role_switcher_pill")
@@ -210,9 +250,21 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
                                 text = userRole.uppercase(),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = Slate800
                             )
                         }
+                    }
+
+                    // Sign Out Button
+                    IconButton(
+                        onClick = { viewModel.logout() },
+                        modifier = Modifier.testTag("topbar_logout_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Sign Out",
+                            tint = Slate600
+                        )
                     }
                 }
             )
@@ -225,15 +277,16 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
             ) {
                 val navItems = listOf(
                     NavigationItem("Home", Icons.Default.Home, ScreenTab.HOME),
-                    NavigationItem("Employees", Icons.Default.People, ScreenTab.EMPLOYEES),
+                    NavigationItem("Summary", Icons.Default.Summarize, ScreenTab.SUMMARY),
+                    NavigationItem("Staff", Icons.Default.People, ScreenTab.EMPLOYEES),
                     NavigationItem("Payroll", Icons.Default.Today, ScreenTab.PAYROLL),
-                    NavigationItem("Advances", Icons.Default.Payments, ScreenTab.ADVANCES),
-                    NavigationItem("Costs", Icons.Default.BarChart, ScreenTab.COSTS)
+                    NavigationItem("Advances", Icons.Default.Payments, ScreenTab.ADVANCES)
                 )
 
                 navItems.forEach { item ->
                     val isSelected = currentTab == item.tab ||
-                            (item.tab == ScreenTab.HOME && (currentTab == ScreenTab.HISTORY || currentTab == ScreenTab.SLIPS))
+                            (item.tab == ScreenTab.HOME && (currentTab == ScreenTab.HISTORY || currentTab == ScreenTab.SLIPS || currentTab == ScreenTab.COSTS)) ||
+                            (item.tab == ScreenTab.EMPLOYEES && currentTab == ScreenTab.ADD_EMPLOYEE)
                     NavigationBarItem(
                         selected = isSelected,
                         onClick = { viewModel.setTab(item.tab) },
@@ -268,6 +321,27 @@ fun PayrollMainApp(viewModel: PayrollViewModel) {
                         batches = batches,
                         advances = advances,
                         onNavigate = { nextTab -> viewModel.setTab(nextTab) }
+                    )
+                    ScreenTab.SUMMARY -> PayrollSummaryScreen(
+                        payrollEntries = payrollEntries,
+                        batches = batches,
+                        employees = employees,
+                        onNavigateToBatch = { month ->
+                            viewModel.selectBatchMonth(month)
+                            viewModel.setTab(ScreenTab.PAYROLL)
+                        }
+                    )
+                    ScreenTab.ADD_EMPLOYEE -> AddEmployeeScreen(
+                        onSaveEmployee = { name, role, salary, idNumber, status ->
+                            viewModel.saveEmployee(
+                                name = name,
+                                trade = role,
+                                idNumber = idNumber,
+                                hourlyRate = salary,
+                                status = status
+                            )
+                        },
+                        onNavigateBack = { viewModel.setTab(ScreenTab.EMPLOYEES) }
                     )
                     ScreenTab.EMPLOYEES -> EmployeesScreen(
                         employees = employees,
