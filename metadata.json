@@ -1,0 +1,6 @@
+{
+  "name": "Site Payroll Manager",
+  "description": "Complete mobile payroll management with employee tracking, monthly batches, advance carry-forward, and cost allocation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

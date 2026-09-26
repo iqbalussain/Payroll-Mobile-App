@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.PayrollSheet" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/navy_dark</item>
+        <item name="android:navigationBarColor">@color/navy_dark</item>
+    </style>
+</resources>
