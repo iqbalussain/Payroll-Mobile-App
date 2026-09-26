@@ -1,6 +1,7 @@
 package com.example.payrollsheet.data.repository
 
 import com.example.payrollsheet.data.local.AdvanceTxEntity
+import com.example.payrollsheet.data.local.EmployeeDao
 import com.example.payrollsheet.data.local.EmployeeEntity
 import com.example.payrollsheet.data.local.PayrollBatchEntity
 import com.example.payrollsheet.data.local.PayrollDao
@@ -14,9 +15,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
-class PayrollRepository(private val dao: PayrollDao) {
+class PayrollRepository(
+    private val dao: PayrollDao,
+    private val employeeDao: EmployeeDao? = null
+) {
 
-    val employees: Flow<List<Employee>> = dao.getAllEmployees().map { entities ->
+    val employees: Flow<List<Employee>> = (employeeDao?.getAllEmployees() ?: dao.getAllEmployees()).map { entities ->
         entities.map { it.toDomain() }
     }
 
@@ -42,11 +46,16 @@ class PayrollRepository(private val dao: PayrollDao) {
     }
 
     suspend fun saveEmployee(employee: Employee): Long {
-        return dao.insertEmployee(EmployeeEntity.fromDomain(employee))
+        val entity = EmployeeEntity.fromDomain(employee)
+        return employeeDao?.insertEmployee(entity) ?: dao.insertEmployee(entity)
     }
 
     suspend fun deleteEmployee(employeeId: Long) {
-        dao.deleteEmployeeById(employeeId)
+        if (employeeDao != null) {
+            employeeDao.deleteEmployeeById(employeeId)
+        } else {
+            dao.deleteEmployeeById(employeeId)
+        }
     }
 
     suspend fun saveBatch(batch: PayrollBatch): String {

@@ -2,6 +2,7 @@ package com.example.payrollsheet.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import com.example.payrollsheet.data.model.Employee
 import com.example.payrollsheet.data.model.PayrollCalculations
 import com.example.payrollsheet.data.model.PayrollLine
+import com.example.payrollsheet.ui.theme.Amber500
 import com.example.payrollsheet.ui.theme.Emerald600
 import com.example.payrollsheet.ui.theme.EmeraldLight
 import com.example.payrollsheet.ui.theme.Navy800

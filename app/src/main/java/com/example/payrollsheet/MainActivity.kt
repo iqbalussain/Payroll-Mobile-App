@@ -80,6 +80,7 @@ import com.example.payrollsheet.ui.theme.Emerald600
 import com.example.payrollsheet.ui.theme.Navy800
 import com.example.payrollsheet.ui.theme.Navy900
 import com.example.payrollsheet.ui.theme.PayrollSheetTheme
+import com.example.payrollsheet.ui.theme.Slate500
 import com.example.payrollsheet.ui.theme.Teal600
 import com.example.payrollsheet.ui.theme.TealLight
 import com.example.payrollsheet.ui.viewmodel.PayrollViewModel

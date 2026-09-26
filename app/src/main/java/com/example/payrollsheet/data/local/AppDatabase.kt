@@ -23,6 +23,7 @@ import java.util.UUID
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun payrollDao(): PayrollDao
+    abstract fun employeeDao(): EmployeeDao
 
     companion object {
         @Volatile
